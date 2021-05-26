@@ -1,24 +1,49 @@
-library(tidyverse)
-library(reshape2)
+# if (!require('devtools')) install.packages('devtools')
+# devtools::install_github('fhernanb/stests', force=TRUE)
+library("tidyverse")
+library("reshape2")
+library("HDtest")
+library("stests")
 
-obj_hist_mogd_linear <- read_csv("data/obj/obj_hist_mogd_linear.csv" )
-obj_hist_ngd_linear <- read_csv("data/obj/obj_hist_ngd_linear.csv")
-obj_hist_mogd_cd <- read_csv("data/obj/obj_hist_mogd_cd.csv")
-obj_hist_ngd_cd <- read_csv("data/obj/obj_hist_ngd_cd.csv")
-obj_hist_mogd_leontief <- read_csv("data/obj/obj_hist_mogd_leontief.csv")
-obj_hist_ngd_leontief  <- read_csv("data/obj/obj_hist_ngd_leontief.csv")
+prices_mogd_linear <- read_csv("data/prices/prices_mogd_linear_high.csv") 
+prices_ngd_linear <- read_csv("data/prices/prices_ngd_linear_high.csv")
+prices_mogd_cd <- read_csv("data/prices/prices_mogd_cd_high.csv")
+prices_ngd_cd <- read_csv("data/prices/prices_ngd_cd_high.csv")
+prices_mogd_leontief <- read_csv("data/prices/prices_mogd_leontief_high.csv")
+prices_ngd_leontief <- read_csv("data/prices/prices_ngd_leontief_high.csv")
 
-prices_mogd_linear <- read_csv("data/prices/prices_mogd_linear") 
-prices_ngd_linear <- read_csv("data/prices/prices_ngd_linear")
-prices_mogd_cd <- read_csv("data/prices/prices_mogd_cd")
-prices_ngd_cd <- read_csv("data/prices/prices_ngd_cd")
-prices_mogd_leontief <- read_csv("data/prices/prices_mogd_leontief")
-prices_ngd_leontief <- read_csv("data/prices/prices_ngd_leontief")
+# Function to perform a multivariate test for two mean vectors
+one_simul <- function(delta, df1, df2) {
+  X <- df1 %>% remove_rownames() %>%
+    column_to_rownames(var = 1)
+  Y <- df2 %>% remove_rownames() %>%
+    column_to_rownames(var = 1)
+  
+  mean_1 <-  sapply(X,FUN=mean)
+  cov_1 <- as.matrix(cov(X))
+  n_1 <- dim(X)[1]
+  mean_2 <-  sapply(Y,FUN=mean)
+  
+  cov_2 <- as.matrix(cov(Y))
+  n_2 <- dim(Y)[1]
+  
+  # Use function two_mean_vector_test from stests package to perform the test
+  res <- two_mean_vector_test(xbar1=mean_1, s1=cov_1, n1=n_1,
+                              xbar2=mean_2, s2=cov_2, n2=n_2, delta0 = delta,
+                              # method = 'james',
+                              alpha=0.05)
+  # Return the statistic and the critical value of the test
+  plot(res, from=0, to=10, shade.col="lightgreen")
+  # return(cbind(res$statistic[1], res$statistic[2]))
+  return(result$p.value)
+}
 
-iter_num <- length(obj_hist_mogd_linear[1,-1])
-exper_num <- 2
-obj_hist_mogd_linear <- t(rbind(1:iter_num, obj_hist_mogd_linear[,-1]))
-colnames(obj_hist_mogd_linear) <- c("Iteration", paste("Experiment", 1:exper_num))
-data1 <- melt(obj_hist_mogd_linear, varnames =  paste("Experiment", 1:exper_num))
-head(data1)
-ggplot(obj_hist_mogd_linear) +  geom_line(aes(x = Iteration, y = `Experiment 1`))
+plot_p_val <- function(X, Y) {
+  delta <- seq(from=0, to=10, by=0.01)
+  p_vals <- sapply(delta, FUN = one_simul, df1 = X, df2 = Y)
+  return (plot(delta, p_vals))
+}
+
+one_simul(0.00001, prices_mogd_leontief, prices_ngd_leontief)
+
+

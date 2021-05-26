@@ -112,16 +112,10 @@ def get_linear_indirect_utill(prices, budget, valuations):
     return np.max(valuations/prices)*budget
 
 def get_linear_marshallian_demand(prices, budget, valuations):
-    allocation = cp.Variable(prices.shape[0])
-    obj = cp.Maximize(get_linear_utility(allocation, valuations))
-    constr = [allocation.T @ prices <= budget,
-                allocation >= 0 ]
-    program = cp.Problem(obj, constr)
-
-    program.solve()
-    marshallian_demand = allocation.value
-
-    return marshallian_demand
+    max_bang_buck_goods = (valuations/prices >= np.max(valuations/prices))
+    cost = max_bang_buck_goods.T @ prices
+    
+    return max_bang_buck_goods*(budget/cost)
 
 def get_linear_expend(prices, util, valuations):
     return np.min(prices/valuations)*util

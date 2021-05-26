@@ -43,27 +43,27 @@ def max_oracle_gd_linear(valuations, budgets, prices_0, learning_rate,  num_iter
 
 #### Multi-step #####
 
-def ms_gd_linear(valuations, budgets, prices_0, learning_rate , num_iters_outer, num_iters_inner, decay = True):
+def ms_gd_linear(valuations, budgets, prices_0, learning_rate , num_iters, decay = True):
     prices = np.copy(prices_0)
     prices_hist = []
     demands_hist = []
-    for iter_outer in range(1, num_iters_outer):
+    for iter_outer in range(1, num_iters):
         if (not iter_outer % 50):
-            print(f" ----- Iteration {iter_outer}/{num_iters_outer} ----- ")
+            print(f" ----- Iteration {iter_outer}/{num_iters} ----- ")
         
         
         prices_hist.append(prices)
         demands = np.zeros(valuations.shape)  
-     
                 
         X = cp.Variable(valuations.shape)
         obj = cp.Maximize(np.sum(prices) + budgets.T @ cp.log(cp.sum(cp.multiply(valuations, X), axis = 1)))
         constr = [X>=0, X @ prices <= budgets]
         prob = cp.Problem(obj, constr)
         try:
-            prob.solve(solver="SCS", eps = 3)
+            prob.solve(solver="ECOS")
         except cp.SolverError:
-            prob.solve(solver="ECOS", abstol = 3)
+            prob.solve(solver="SCS")
+            
             
         demands = X.value
         
@@ -89,7 +89,7 @@ def ms_gd_linear(valuations, budgets, prices_0, learning_rate , num_iters_outer,
     
 #### Max Oracle ####
 
-def max_oracle_gd_cd(valuations, budgets, prices_0, learning_rate, num_iters, decay = True):
+def max_oracle_gd_cd(valuations, budgets, prices_0, learning_rate, num_iters, decay = False):
     prices = np.copy(prices_0)
     prices_hist = []
     demands_hist = []
@@ -124,25 +124,26 @@ def max_oracle_gd_cd(valuations, budgets, prices_0, learning_rate, num_iters, de
 
 #### Multi-step #####
 
-def ms_gd_cd(valuations, budgets, prices_0, learning_rate, num_iters_outer, num_iters_inner, decay = True):
+def ms_gd_cd(valuations, budgets, prices_0, learning_rate, num_iters, decay = False):
     prices = np.copy(prices_0)
     prices_hist = []
     demands_hist = []
-    for iter_outer in range(1, num_iters_outer):
+
+    for iter_outer in range(1, num_iters):
         if (not iter_outer % 50):
-            print(f" ----- Iteration {iter_outer}/{num_iters_outer} ----- ")
+            print(f" ----- Iteration {iter_outer}/{num_iters} ----- ")
         
         prices_hist.append(prices)
         demands = np.zeros(valuations.shape)  
-        
+
         X = cp.Variable(valuations.shape)
         obj = cp.Maximize(np.sum(prices) + budgets.T @ cp.sum(cp.multiply(valuations, cp.log(X)), axis = 1))
         constr = [X>=0, X @ prices <= budgets]
         prob = cp.Problem(obj, constr)
         try:
-            prob.solve(solver="SCS")#, eps = 0.0001)
+            prob.solve(solver="SCS")
         except cp.SolverError:
-            prob.solve(solver="ECOS")#, abstol = 0.0001)
+            prob.solve(solver="ECOS")
             
         demands = X.value
         demands = demands.clip(min = 0)
@@ -169,6 +170,7 @@ def max_oracle_gd_leontief(valuations, budgets, prices_0, learning_rate, num_ite
     prices = np.copy(prices_0)
     prices_hist = []
     demands_hist = []
+    
     for iter in range(1, num_iters):
         if (not iter % 50):
             print(f" ----- Iteration {iter}/{num_iters} ----- ")
@@ -196,13 +198,13 @@ def max_oracle_gd_leontief(valuations, budgets, prices_0, learning_rate, num_ite
         
     return (demands, prices, demands_hist, prices_hist)
 
-def ms_gd_leontief(valuations, budgets, prices_0, learning_rate, num_iters_outer, num_iters_inner, decay = True):
+def ms_gd_leontief(valuations, budgets, prices_0, learning_rate, num_iters, decay = True):
     prices = prices_0
     prices_hist = []
     demands_hist = []
-    for iter_outer in range(1, num_iters_outer):
+    for iter_outer in range(1, num_iters):
         if (not iter_outer % 50):
-            print(f" ----- Iteration {iter_outer}/{num_iters_outer} ----- ")
+            print(f" ----- Iteration {iter_outer}/{num_iters} ----- ")
         
         prices_hist.append(prices)
         demands = np.zeros(valuations.shape)
@@ -213,9 +215,10 @@ def ms_gd_leontief(valuations, budgets, prices_0, learning_rate, num_iters_outer
         prob = cp.Problem(obj, constr)
         
         try:
-            prob.solve(solver="SCS", eps = 0.01)
+            prob.solve(solver="ECOS")
         except cp.SolverError:
-            prob.solve(solver="ECOS", abstol = 0.01)
+            prob.solve(solver="SCS")
+            
             
         demands = X.value
         
