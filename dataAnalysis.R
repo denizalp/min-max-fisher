@@ -1,8 +1,8 @@
 # if (!require('devtools')) install.packages('devtools')
 # devtools::install_github('fhernanb/stests', force=TRUE)
+# install.packages("tidyverse")
+
 library("tidyverse")
-library("reshape2")
-library("HDtest")
 library("stests")
 
 prices_mogd_linear <- read_csv("data/prices/prices_mogd_linear_high.csv") 
@@ -33,9 +33,9 @@ one_simul <- function(delta, df1, df2) {
                               # method = 'james',
                               alpha=0.05)
   # Return the statistic and the critical value of the test
-  plot(res, from=0, to=10, shade.col="lightgreen")
+  # plot(res, from=0, to=10, shade.col="lightgreen")
   # return(cbind(res$statistic[1], res$statistic[2]))
-  return(result$p.value)
+  return(res$p.value)
 }
 
 plot_p_val <- function(X, Y) {
@@ -44,6 +44,14 @@ plot_p_val <- function(X, Y) {
   return (plot(delta, p_vals))
 }
 
-one_simul(0.00001, prices_mogd_leontief, prices_ngd_leontief)
+delta <- 0.3
+print(paste("Running First Order James Test to see if outputs differ on average by more than:", delta ))
+print("Linear p-value:\n")
+print(one_simul(0.3, prices_mogd_linear, prices_ngd_linear))
+print("Cobb-Douglas p-value:\n")
+print(one_simul(0.3, prices_mogd_cd, prices_ngd_cd))
+print("Leontief p-value:\n")
+print(one_simul(0.3, prices_mogd_leontief, prices_ngd_leontief))
+
 
 
