@@ -44,14 +44,14 @@ plot_p_val <- function(X, Y) {
   return (plot(delta, p_vals))
 }
 
-delta <- 0.3
+delta <- 0.05
 print(paste("Running First Order James Test to see if outputs differ on average by more than:", delta ))
 print("Linear p-value:\n")
-print(one_simul(0.3, prices_mogd_linear, prices_ngd_linear))
+print(one_simul(delta, prices_mogd_linear, prices_ngd_linear))
 print("Cobb-Douglas p-value:\n")
-print(one_simul(0.3, prices_mogd_cd, prices_ngd_cd))
+print(one_simul(delta, prices_mogd_cd, prices_ngd_cd))
 print("Leontief p-value:\n")
-print(one_simul(0.3, prices_mogd_leontief, prices_ngd_leontief))
+print(one_simul(delta, prices_mogd_leontief, prices_ngd_leontief))
 
 
 
